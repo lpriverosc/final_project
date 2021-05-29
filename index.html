@@ -17,14 +17,14 @@
     }
 
     h1 {
-        margin: 10px auto;
+        margin: 12px auto;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         font-weight: lighter;
         text-align: center;
     }
 
     h3 {
-        margin: 10px auto;
+        margin: 12px auto;
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         font-weight: lighter;
         text-align: center;
@@ -48,7 +48,7 @@
         fill: #333;
     }
     .label {
-            font-size: 25px;
+            font-size: 20px;
             /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
             font-weight: 90;
         }
@@ -67,7 +67,7 @@
 
     .highlight {
             color: rgb(22, 114, 106);
-            text-decoration:solid;
+            text-decoration:underline;
 
         }
 
@@ -85,12 +85,23 @@
     Colombia is the <span class='highlight'>second</span> most unequal country in Latin America. The poorest regions are the most unequal, Chocó tops the list in  <span class='highlight'>2012</span>  and  <span class='highlight'>2019</span> . Valle del Cauca is one of the protagonists of the protest today!
   </h3>
 
+  <h4 style = "color: rgb(177, 69, 26)">
+    2012
+
+</h4>
+
     <svg width="1050px" height="500px" id="svg1">
     </svg>
     <h3 class="headline">
       In 2019, Colombian GDP grew 24% in 7 years and the inequality remains. The pandemic has worsened this dynamic, the protest exploited in Cali, Valle del Cauca, the third biggest city in the country, represents the social division of the country.
 
    </h3>
+
+   <h4 style = "color: rgb(177, 69, 26)">
+    2019
+
+</h4>
+
 
   
   <svg width="1050px" height="500px" id="svg2">
@@ -135,16 +146,16 @@
 
 
       let sel_colors = [
-            "#73D055FF", // "Medicaid",
-            "#29AF7FFF", // "Medicare",
-            "#33638DFF", // "Medicare+Medicaid",
-            "#440154FF", // "Employer",
-            "#26A69A", // "Uninsured",
-            "#4DD0E1", // "Direct Purchase",
-            "#F06292", // "Subsidized Exchange",
-            "#5C6BC0", // "CHIP",
-            "#90A4AE", // "Military",
-            "#E0E0E0"  // "Other"
+            "#73D055FF", 
+            "#29AF7FFF", 
+            "#33638DFF", 
+            "#440154FF", 
+            "#26A69A", 
+            "#4DD0E1", 
+            "#F06292", 
+            "#5C6BC0", 
+            "#90A4AE", 
+            "#E0E0E0"  
         ]
     
 
@@ -267,7 +278,7 @@
 
           svg1.append("text")
             .attr("class", "label")
-            .attr("x", 720)
+            .attr("x", 750)
             .attr("y", 17)
             .text("Upper Class")
             .style("fill", "white")
