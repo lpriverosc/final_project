@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<meta charset="utf-8">
+<style>
+    .chart-container {
+        max-width: 1050px;
+        /* border: 3px solid red; */
+        margin: 0 auto;
+        /* auto centers the div */
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    }
+
+    svg {
+        /* border: 2px solid purple; */
+        overflow: visible;
+    }
+
+    h1 {
+        margin: 10px auto;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: lighter;
+        text-align: center;
+    }
+
+    h3 {
+        margin: 10px auto;
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: lighter;
+        text-align: center;
+    }
+    .x .domain {
+        display: none;
+    }
+
+    .y .domain {
+        display: none;
+    }
+
+    .y .tick text {
+        font-size: 14px;
+        fill: #333;
+
+    }
+
+    .x .tick text {
+        font-size: 14px;
+        fill: #333;
+    }
+    .label {
+            font-size: 25px;
+            /* font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; */
+            font-weight: 90;
+        }
+
+    .legend {
+	 	        font-size: 12px;
+	 	        font-family: 'Proxima Nova', sans-serif;
+	}
+    /* .change-btn {
+            margin: 10px 0 0 30px;
+            width: 250px;
+            font-size: medium;
+            cursor: pointer;
+        } */
+
+    .highlight {
+            color: rgb(22, 114, 106);
+            text-decoration: underline;
+
+        }
+
+
+</style>
+</head>
+
+<body>
+<div class="chart-container">
+    <h1 class="headline">
+        Classification of social classes in Colombia
+    </h1>
+
+    <h3 class="headline">
+    Colombia is the <span class='highlight'>second</span> most unequal country in Latin America. Colombia is the second most unequal country in Latin America. The poorest regions are the most unequal, Chocó tops the list in  <span class='highlight'>2012</span>  and  <span class='highlight'>2019</span> . Valle del Cauca is one of the protagonists of the protest today!
+  </h3>
+
+    <svg width="1050px" height="500px" id="svg1">
+    </svg>
+    <h3 class="headline">
+      In 2019, Colombian GDP grew 24% in 7 years and the inequality remains. The pandemic has worsened this dynamic, the protest exploited in Cali, Valle del Cauca, the third biggest city in the country, represents the social division of the country.
+
+   </h3>
+
+  
+  <svg width="1050px" height="500px" id="svg2">
+  </svg>
+    <p>Source: DANE</p>
+</div>
+</body>
+
+<!-- Load d3.js & color palette-->
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
+
+
+<!-- Create a div where the graph will take place -->
+<!-- <div id="body"></div> -->
+<script>
+
+    // set the dimensions and margins of the graph
+    var margin = {top: 10, right: 30, bottom: 20, left: 50},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    var svg1 = d3.select("body").select("#svg1")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+    
+    // Parse the Data
+    d3.csv("data.csv", function(data) {
+
+      let sel_cols = [
+            "Vulnerable",
+            "Vulnerable",
+            "Pobres",
+            "Clase_media",
+            "Clase_alta"]
+
+
+      let sel_colors = [
+            "#73D055FF", // "Medicaid",
+            "#29AF7FFF", // "Medicare",
+            "#33638DFF", // "Medicare+Medicaid",
+            "#440154FF", // "Employer",
+            "#26A69A", // "Uninsured",
+            "#4DD0E1", // "Direct Purchase",
+            "#F06292", // "Subsidized Exchange",
+            "#5C6BC0", // "CHIP",
+            "#90A4AE", // "Military",
+            "#E0E0E0"  // "Other"
+        ]
+    
+
+      let year_state = "d2019";
+
+      let data12 = [...data].filter(d => d.year == "2012")
+      let data19 = [...data].filter(d => d.year == "2019")
+        
+      // List of subgroups = header 
+      var subgroups = sel_cols.slice(1)
+    
+      // List of groups 
+      var groups = d3.map(data, function(d){return(d.group)}).keys()
+    
+      // Add X axis
+      var x = d3.scaleBand()
+          .domain(groups)
+          .range([0, width + 500])
+          .paddingInner(.05)
+          // .range([margin.left, width - margin.right])
+          
+
+      svg1.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 9)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(45)")
+        .style("text-anchor", "start");;
+    
+      // Add Y axis
+      var y = d3.scaleLinear()
+        .domain([0, 1])
+        .range([ height, 0 ]);
+
+        
+      svg1.append("g")
+        .call(d3.axisLeft(y)
+        .tickSizeOuter(10)
+        .tickValues([0, .2,  .5, .8, 1]) 
+        .tickFormat(d3.format(".0%")));
+
+    
+      // color palette = one color per subgroup
+      var color = d3.scaleOrdinal()
+        .domain(subgroups)
+        .range(sel_colors);
+    
+      //stack the data? --> stack per subgroup
+      var stackedData = d3.stack()
+        .keys(subgroups)
+        (data12)
+
+
+      // ----------------
+      // Highlight a specific subgroup when hovered
+      // ----------------
+    
+      // What happens when user hover a bar
+      var mouseover = function(d) {
+        // what subgroup are we hovering?
+        var subgroupName = d3.select(this.parentNode).datum().key; // This was the tricky part
+        var subgroupValue = d.data[subgroupName];
+        // Reduce opacity of all rect to 0.2
+        d3.selectAll(".myRect").style("opacity", 0.2)
+        // Highlight all rects of this subgroup with opacity 0.8. It is possible to select them since they have a specific class = their name.
+        d3.selectAll("."+subgroupName)
+          .style("opacity", 1)
+        }
+    
+      // When user do not hover anymore
+      var mouseleave = function(d) {
+        // Back to normal opacity: 0.8
+        d3.selectAll(".myRect")
+          .style("opacity",0.8)
+        }
+    
+      // Show the bars
+      svg1.append("g")
+        .selectAll("g")
+        // Enter in the stack data = loop key per key = group per group
+        .data(stackedData)
+        .enter().append("g")
+        .attr("fill", function(d) { return color(d.key); })
+        .attr("class", function(d){ return "myRect " + d.key }) // Add a class to each subgroup: their name
+        .selectAll("rect")
+          // enter a second time = loop subgroup per subgroup to add all rectangles
+        .data(function(d) { return d; })
+        .enter().append("rect")
+          .attr("x", function(d) { return x(d.data.group); })
+          .attr("y", function(d) { return y(d[1]); })
+          .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+          .attr("width",x.bandwidth())
+          .attr("stroke", "grey")
+          .on("mouseover", mouseover)
+          .on("mouseleave", mouseleave)
+
+          svg1.append("text")
+            .attr("class", "label")
+            .attr("x", 200)
+            .attr("y", 152)
+            .text("Poor")
+            .style("fill", "white")
+
+          svg1.append("text")
+            .attr("class", "label")
+            .attr("x", 500)
+            .attr("y", 300)
+            .text("Vulnerable")
+            .style("fill", "white")
+
+          svg1.append("text")
+            .attr("class", "label")
+            .attr("x", 600)
+            .attr("y", 50)
+            .text("Medium Class")
+            .style("fill", "white")
+
+          svg1.append("text")
+            .attr("class", "label")
+            .attr("x", 720)
+            .attr("y", 17)
+            .text("Upper Class")
+            .style("fill", "white")
+
+          svg1.append("text")
+            .attr("class", "legend")
+            .attr("x", 850)
+            .attr("y", 160)
+            .text("74%")
+            .style("fill", "black")
+
+          svg1.append("text")
+            .attr("class", "legend")
+            .attr("x", 75)
+            .attr("y", 295)
+            .text("35%")
+            .style("fill", "black")
+
+          svg1.append("text")
+            .attr("class", "legend")
+            .attr("x", 75)
+            .attr("y", 175)
+            .text("31%")
+            .style("fill", "black")
+
+            svg1.append("text")
+            .attr("class", "legend")
+            .attr("x", 75)
+            .attr("y", 75)
+            .text("30%")
+            .style("fill", "black")
+
+                    // now add titles to the axes
+
+          svg1.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            // .attr("transform", "translate("+ (width/2) +","+(height-(padding/3))+")")  // centre below axis
+            .attr("x", 730)
+            .attr("y", 430)
+            .text("Departments");
+
+
+    })
+
+    var margin = {top: 10, right: 30, bottom: 20, left: 50},
+        width = 460 - margin.left - margin.right,
+        height = 400 - margin.top - margin.bottom;
+    
+    // append the svg object to the body of the page
+    var svg2 = d3.select("body").select("#svg2")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+    
+    // Parse the Data
+    d3.csv("data.csv", function(data) {
+
+      let sel_cols = [
+            "Vulnerable",
+            "Vulnerable",
+            "Pobres",
+            "Clase_media",
+            "Clase_alta"]
+
+
+      let sel_colors = [
+            "#73D055FF", // "Medicaid",
+            "#29AF7FFF", // "Medicare",
+            "#33638DFF", // "Medicare+Medicaid",
+            "#440154FF", // "Employer",
+            "#26A69A", // "Uninsured",
+            "#4DD0E1", // "Direct Purchase",
+            "#F06292", // "Subsidized Exchange",
+            "#5C6BC0", // "CHIP",
+            "#90A4AE", // "Military",
+            "#E0E0E0"  // "Other"
+        ]
+    
+
+      let data12 = [...data].filter(d => d.year == "2012")
+      let data19 = [...data].filter(d => d.year == "2019")
+        
+      // List of subgroups = header 
+      var subgroups = sel_cols.slice(1)
+    
+      // List of groups 
+      var groups = d3.map(data19, function(d){return(d.group)}).keys()
+    
+      // Add X axis
+      var x = d3.scaleBand()
+          .domain(groups)
+          .range([0, width + 500])
+          .paddingInner(.05)
+          // .range([margin.left, width - margin.right])
+
+      svg2.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).tickSizeOuter(0))
+        .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 9)
+        .attr("dy", ".35em")
+        .attr("transform", "rotate(45)")
+        .style("text-anchor", "start");;
+    
+      // Add Y axis
+      var y = d3.scaleLinear()
+        .domain([0, 1])
+        .range([ height, 0 ]);
+
+        
+      svg2.append("g")
+        .call(d3.axisLeft(y)
+        .tickSizeOuter(10)
+        .tickValues([0, .2,  .5, .8, 1]) 
+        .tickFormat(d3.format(".0%")));
+
+    
+      // color palette = one color per subgroup
+      var color = d3.scaleOrdinal()
+        .domain(subgroups)
+        .range(sel_colors);
+    
+      //stack the data? --> stack per subgroup
+      var stackedData = d3.stack()
+        .keys(subgroups)
+        (data19)
+
+
+      // ----------------
+      // Highlight a specific subgroup when hovered
+      // ----------------
+    
+      // What happens when user hover a bar
+      var mouseover = function(d) {
+        // what subgroup are we hovering?
+        var subgroupName = d3.select(this.parentNode).datum().key; // This was the tricky part
+        var subgroupValue = d.data[subgroupName];
+        // Reduce opacity of all rect to 0.2
+        d3.selectAll(".myRect").style("opacity", 0.2)
+        
+        // Highlight all rects of this subgroup with opacity 0.8. It is possible to select them since they have a specific class = their name.
+        d3.selectAll("."+subgroupName)
+          .style("opacity", 1)
+        }
+    
+      // When user do not hover anymore
+      var mouseleave = function(d) {
+        // Back to normal opacity: 0.8
+        d3.selectAll(".myRect")
+          .style("opacity",0.8)
+        }
+    
+      // Show the bars
+      svg2.append("g")
+        .selectAll("g")
+        // Enter in the stack data = loop key per key = group per group
+        .data(stackedData)
+        .enter().append("g")
+        .attr("fill", function(d) { return color(d.key); })
+        .attr("class", function(d){ return "myRect " + d.key }) // Add a class to each subgroup: their name
+        .selectAll("rect")
+          // enter a second time = loop subgroup per subgroup to add all rectangles
+        .data(function(d) { return d; })
+        .enter().append("rect")
+          .attr("x", function(d) { return x(d.data.group); })
+          .attr("y", function(d) { return y(d[1]); })
+          .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+          .attr("width",x.bandwidth())
+          .attr("stroke", "grey")
+          .on("mouseover", mouseover)
+          .on("mouseleave", mouseleave)
+
+          svg2.append("text")
+            .attr("class", "label")
+            .attr("x", 200)
+            .attr("y", 152)
+            .text("Poor")
+            .style("fill", "white")
+
+          svg2.append("text")
+            .attr("class", "label")
+            .attr("x", 500)
+            .attr("y", 300)
+            .text("Vulnerable")
+            .style("fill", "white")
+
+          svg2.append("text")
+            .attr("class", "label")
+            .attr("x", 600)
+            .attr("y", 50)
+            .text("Medium Class")
+            .style("fill", "white")
+
+          svg2.append("text")
+            .attr("class", "label")
+            .attr("x", 720)
+            .attr("y", 17)
+            .text("Upper Class")
+            .style("fill", "white")
+
+          svg2.append("text")
+            .attr("class", "legend")
+            .attr("x", 815)
+            .attr("y", 140)
+            .text("68%")
+            .style("fill", "black")
+
+          svg2.append("text")
+            .attr("class", "legend")
+            .attr("x", 393)
+            .attr("y", 295)
+            .text("35%")
+            .style("fill", "black")
+
+            svg2.append("text")
+            .attr("class", "legend")
+            .attr("x", 853)
+            .attr("y", 18)
+            .text("7%")
+            .style("fill", "black")
+
+            svg2.append("text")
+            .attr("class", "legend")
+            .attr("x", 393)
+            .attr("y", 175)
+            .text("24%")
+            .style("fill", "black")
+
+            svg2.append("text")
+            .attr("class", "legend")
+            .attr("x", 393)
+            .attr("y", 75)
+            .text("39%")
+            .style("fill", "black")
+
+                    // now add titles to the axes
+
+          svg2.append("text")
+            .attr("text-anchor", "middle")  // this makes it easy to centre the text as the transform is applied to the anchor
+            // .attr("transform", "translate("+ (width/2) +","+(height-(padding/3))+")")  // centre below axis
+            .attr("x", 730)
+            .attr("y", 430)
+            .text("Departments");
+
+    })
+    
+    </script>
